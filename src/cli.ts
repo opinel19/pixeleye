@@ -4,6 +4,7 @@ import {
   formatLanguageList,
   parseLanguages,
 } from "./i18n/languages";
+import { formatOutput } from "./formatters/output";
 import { analyzeWithProvider, formatProviderError } from "./providers";
 import { buildPrompt } from "./prompts/qaPrompt";
 import { resolveImagePath } from "./utils/paths";
@@ -55,6 +56,7 @@ const ask = (
 
 const providers = ["Gemini", "ChatGPT"] as const;
 type PromptVersion = "short" | "long";
+type RetryChoice = "yes" | "no";
 
 const validateProvider = (input: string): (typeof providers)[number] => {
   const normalized = input.toLowerCase();
@@ -94,6 +96,17 @@ const validatePromptVersion = (input: string): PromptVersion => {
     return "long";
   }
   throw new Error("Geçersiz seçim. 1 (kısa) veya 2 (uzun) girin.");
+};
+
+const validateRetryChoice = (input: string): RetryChoice => {
+  const normalized = input.trim().toLowerCase();
+  if (normalized === "e" || normalized === "evet" || normalized === "yes") {
+    return "yes";
+  }
+  if (normalized === "h" || normalized === "hayir" || normalized === "hayır" || normalized === "no") {
+    return "no";
+  }
+  throw new Error("Geçersiz seçim. Evet için 'e', hayır için 'h' girin.");
 };
 
 const promptUntilValid = async <T>(
@@ -157,18 +170,38 @@ const run = async () => {
   console.log(`Prompt sürümü: ${promptVersion}`);
 
   try {
-    const response = await analyzeWithProvider(provider, {
-      apiKey,
-      prompt: buildPrompt({
-        basePrompt: prompt,
-        languages,
+    let shouldRetry = true;
+    while (shouldRetry) {
+      const response = await analyzeWithProvider(provider, {
+        apiKey,
+        prompt: buildPrompt({
+          basePrompt: prompt,
+          languages,
+          imagePaths: [imagePath],
+          version: promptVersion,
+        }),
         imagePaths: [imagePath],
-        version: promptVersion,
-      }),
-      imagePaths: [imagePath],
-    });
-    console.log("\n--- Analiz ---");
-    console.log(response.analysis);
+      });
+      const formatted = formatOutput(response.analysis, [imagePath]);
+      console.log("\n--- Analiz ---");
+      console.log(formatted.lines.join("\n"));
+
+      if (formatted.isValid) {
+        shouldRetry = false;
+        break;
+      }
+
+      console.log("\nUyarı: Yanıt formatında sorunlar var.");
+      formatted.warnings.forEach((warning) => {
+        console.log(`- ${warning}`);
+      });
+
+      const retryChoice = await promptUntilValid(
+        "Yanıt formatı hatalı. Yeniden denemek ister misiniz? (e/h): ",
+        validateRetryChoice,
+      );
+      shouldRetry = retryChoice === "yes";
+    }
   } catch (error) {
     console.error(`\nHata: ${formatProviderError(error)}`);
   }
