@@ -39,7 +39,8 @@ const main = async () => {
     {
       type: "input",
       name: "imageInput",
-      message: "Enter image paths (comma or newline separated)",
+      message:
+        "Enter image paths or a folder path (comma or newline separated)",
       validate: (value) => (value.trim() ? true : "Please provide at least one path.")
     }
   ]);
@@ -54,6 +55,10 @@ const main = async () => {
   ]);
 
   const imagePaths = normalizeImagePaths(imageInput);
+  if (imagePaths.length === 0) {
+    console.error(chalk.red("No supported images found in the provided paths."));
+    process.exit(1);
+  }
   const invalidPaths = imagePaths.filter((p) => !fs.existsSync(p));
   if (invalidPaths.length > 0) {
     console.error(chalk.red("Some paths are invalid:"));
