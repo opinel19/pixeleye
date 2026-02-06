@@ -8,14 +8,49 @@ import { analyzeWithProvider, formatProviderError } from "./providers";
 import { buildPrompt } from "./prompts/qaPrompt";
 import { resolveImagePath } from "./utils/paths";
 
+type MaskedReadline = readline.Interface & {
+  stdoutMuted?: boolean;
+};
+
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout,
-});
+}) as MaskedReadline;
 
-const ask = (question: string): Promise<string> =>
+rl.stdoutMuted = false;
+const originalWrite = (rl as readline.Interface)._writeToOutput.bind(rl);
+(rl as readline.Interface)._writeToOutput = (stringToWrite: string) => {
+  if (rl.stdoutMuted) {
+    if (stringToWrite.trim()) {
+      rl.output.write("*");
+    }
+    return;
+  }
+  originalWrite(stringToWrite);
+};
+
+const ask = (
+  question: string,
+  options: { maskInput?: boolean } = {},
+): Promise<string> =>
   new Promise((resolve) => {
-    rl.question(question, (answer) => resolve(answer.trim()));
+    if (!options.maskInput) {
+      rl.question(question, (answer) => resolve(answer.trim()));
+      return;
+    }
+
+    const handleLine = (answer: string) => {
+      rl.removeListener("line", handleLine);
+      rl.stdoutMuted = false;
+      console.log();
+      resolve(answer.trim());
+    };
+
+    rl.setPrompt(question);
+    rl.stdoutMuted = false;
+    rl.prompt();
+    rl.stdoutMuted = true;
+    rl.on("line", handleLine);
   });
 
 const providers = ["Gemini", "ChatGPT"] as const;
@@ -64,9 +99,10 @@ const validatePromptVersion = (input: string): PromptVersion => {
 const promptUntilValid = async <T>(
   question: string,
   validator: (input: string) => T,
+  options: { maskInput?: boolean } = {},
 ): Promise<T> => {
   while (true) {
-    const answer = await ask(question);
+    const answer = await ask(question, options);
     try {
       return validator(answer);
     } catch (error) {
@@ -89,6 +125,7 @@ const run = async () => {
   const apiKey = await promptUntilValid(
     "API anahtarınızı girin: ",
     validateApiKey,
+    { maskInput: true },
   );
 
   const imagePath = await promptUntilValid(
@@ -115,7 +152,6 @@ const run = async () => {
 
   console.log("\n--- Sonuç ---");
   console.log(`Sağlayıcı: ${provider}`);
-  console.log(`API Key: ${"*".repeat(Math.min(apiKey.length, 8))}`);
   console.log(`Görsel: ${imagePath}`);
   console.log(`Diller: ${languages.join(", ")}`);
   console.log(`Prompt sürümü: ${promptVersion}`);
