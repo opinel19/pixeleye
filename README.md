@@ -12,6 +12,20 @@ Context-Aware Analysis: Understands the target language to ensure the UI adapts 
 
 ## Quick Start
 
+### Homebrew (macOS)
+
+1. Install via Homebrew:
+   ```bash
+   brew install --formula https://raw.githubusercontent.com/opinel19/pixeleye/main/Formula/pixeleye.rb
+   ```
+
+2. Run the CLI:
+   ```bash
+   pixeleye
+   ```
+
+> Note: Update the URL above to match your GitHub org/user. The Homebrew formula pulls the published npm tarball for installation, so publish to npm and update the formula `url` and `sha256` values.
+
 1. Install dependencies:
    ```bash
    npm install
