@@ -1,0 +1,16 @@
+{
+  "name": "pixeleye",
+  "version": "0.1.0",
+  "description": "CLI tool to analyze localized UI screenshots with Gemini or ChatGPT.",
+  "type": "module",
+  "bin": {
+    "pixeleye": "src/index.js"
+  },
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "inquirer": "^9.2.12"
+  }
+}
