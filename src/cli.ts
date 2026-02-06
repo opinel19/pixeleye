@@ -1,8 +1,7 @@
-import fs from "node:fs";
-import path from "node:path";
 import readline from "node:readline";
 
 import { analyzeWithProvider, formatProviderError } from "./providers";
+import { resolveImagePath } from "./utils/paths";
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -64,18 +63,7 @@ const validateApiKey = (input: string): string => {
 };
 
 const validateImagePath = (input: string): string => {
-  if (!input) {
-    throw new Error("Görsel yolu boş olamaz.");
-  }
-  const resolvedPath = path.resolve(input);
-  if (!fs.existsSync(resolvedPath)) {
-    throw new Error("Belirtilen dosya bulunamadı.");
-  }
-  const stats = fs.statSync(resolvedPath);
-  if (!stats.isFile()) {
-    throw new Error("Belirtilen yol bir dosya olmalıdır.");
-  }
-  return resolvedPath;
+  return resolveImagePath(input);
 };
 
 const validatePrompt = (input: string): string => {
