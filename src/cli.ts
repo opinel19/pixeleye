@@ -1,6 +1,11 @@
 import readline from "node:readline";
 
+import {
+  formatLanguageList,
+  parseLanguages,
+} from "./i18n/languages";
 import { analyzeWithProvider, formatProviderError } from "./providers";
+import { buildPrompt } from "./prompts/qaPrompt";
 import { resolveImagePath } from "./utils/paths";
 
 const rl = readline.createInterface({
@@ -14,35 +19,7 @@ const ask = (question: string): Promise<string> =>
   });
 
 const providers = ["Gemini", "ChatGPT"] as const;
-const languageOptions = [
-  { code: "tr", label: "Türkçe" },
-  { code: "en", label: "English" },
-  { code: "de", label: "Deutsch" },
-  { code: "fr", label: "Français" },
-  { code: "es", label: "Español" },
-  { code: "ja", label: "日本語" },
-  { code: "zh", label: "中文" },
-] as const;
-
-type LanguageCode = (typeof languageOptions)[number]["code"];
-
-const formatLanguageList = () =>
-  languageOptions.map((lang) => `${lang.code} (${lang.label})`).join(", ");
-
-const parseLanguages = (input: string): LanguageCode[] => {
-  const tokens = input
-    .split(",")
-    .map((entry) => entry.trim().toLowerCase())
-    .filter(Boolean);
-  const validCodes = new Set(languageOptions.map((lang) => lang.code));
-  const invalid = tokens.filter((token) => !validCodes.has(token as LanguageCode));
-  if (tokens.length === 0 || invalid.length > 0) {
-    throw new Error(
-      `Geçersiz dil seçimi. Mevcut seçenekler: ${formatLanguageList()}.`,
-    );
-  }
-  return Array.from(new Set(tokens)) as LanguageCode[];
-};
+type PromptVersion = "short" | "long";
 
 const validateProvider = (input: string): (typeof providers)[number] => {
   const normalized = input.toLowerCase();
@@ -71,6 +48,17 @@ const validatePrompt = (input: string): string => {
     throw new Error("Prompt boş olamaz.");
   }
   return input;
+};
+
+const validatePromptVersion = (input: string): PromptVersion => {
+  const normalized = input.trim().toLowerCase();
+  if (normalized === "kisa" || normalized === "short" || normalized === "1") {
+    return "short";
+  }
+  if (normalized === "uzun" || normalized === "long" || normalized === "2") {
+    return "long";
+  }
+  throw new Error("Geçersiz seçim. 1 (kısa) veya 2 (uzun) girin.");
 };
 
 const promptUntilValid = async <T>(
@@ -120,16 +108,27 @@ const run = async () => {
     parseLanguages,
   );
 
+  const promptVersion = await promptUntilValid(
+    "Prompt uzunluğu seçin (1=kısa, 2=uzun): ",
+    validatePromptVersion,
+  );
+
   console.log("\n--- Sonuç ---");
   console.log(`Sağlayıcı: ${provider}`);
   console.log(`API Key: ${"*".repeat(Math.min(apiKey.length, 8))}`);
   console.log(`Görsel: ${imagePath}`);
   console.log(`Diller: ${languages.join(", ")}`);
+  console.log(`Prompt sürümü: ${promptVersion}`);
 
   try {
     const response = await analyzeWithProvider(provider, {
       apiKey,
-      prompt: `${prompt}\nYanıtı şu dillerde ver: ${languages.join(", ")}.`,
+      prompt: buildPrompt({
+        basePrompt: prompt,
+        languages,
+        imagePaths: [imagePath],
+        version: promptVersion,
+      }),
       imagePaths: [imagePath],
     });
     console.log("\n--- Analiz ---");
