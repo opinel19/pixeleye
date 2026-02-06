@@ -1,5 +1,5 @@
 const GEMINI_ENDPOINT =
-  "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
+  "https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent";
 
 export const analyzeWithGemini = async ({ apiKey, prompt, imageDataUrls }) => {
   const parts = [
