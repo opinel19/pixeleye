@@ -24,6 +24,27 @@ Context-Aware Analysis: Understands the target language to ensure the UI adapts 
    pixeleye
    ```
 
+### npm (any platform)
+
+> Note: The package is not published to the npm registry yet, so install directly from GitHub.
+
+1. Install globally from GitHub:
+   ```bash
+   npm install -g https://github.com/opinel19/pixeleye
+   ```
+
+2. Run the CLI:
+   ```bash
+   pixeleye
+   ```
+
+3. Follow the prompts to select provider, add API key, image paths, and languages.
+
+> Windows note: if you see `EEXIST` for `pixeleye.ps1`, remove the existing file from
+> `%APPDATA%\\npm\\pixeleye.ps1` or rerun the install with `npm install -g --force https://github.com/opinel19/pixeleye`.
+
+### Local development
+
 1. Install dependencies:
    ```bash
    npm install
@@ -33,8 +54,6 @@ Context-Aware Analysis: Understands the target language to ensure the UI adapts 
    ```bash
    npm start
    ```
-
-3. Follow the prompts to select provider, add API key, image paths, and languages.
 
 ## Notes
 
