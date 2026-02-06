@@ -24,8 +24,6 @@ Context-Aware Analysis: Understands the target language to ensure the UI adapts 
    pixeleye
    ```
 
-> Note: Update the URL above to match your GitHub org/user. The Homebrew formula pulls the published npm tarball for installation, so publish to npm and update the formula `url` and `sha256` values.
-
 1. Install dependencies:
    ```bash
    npm install
