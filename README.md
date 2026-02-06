@@ -26,8 +26,6 @@ Context-Aware Analysis: Understands the target language to ensure the UI adapts 
 
 ### npm (any platform)
 
-> Note: The package is not published to the npm registry yet, so install directly from GitHub.
-
 1. Install globally from GitHub:
    ```bash
    npm install -g https://github.com/opinel19/pixeleye
