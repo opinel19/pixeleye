@@ -16,7 +16,7 @@ Context-Aware Analysis: Understands the target language to ensure the UI adapts 
 
 1. Install via Homebrew:
    ```bash
-   brew install --formula https://raw.githubusercontent.com/<GITHUB_ORG_OR_USER>/pixeleye/main/Formula/pixeleye.rb
+   brew install --formula https://raw.githubusercontent.com/opinel19/pixeleye/main/Formula/pixeleye.rb
    ```
 
 2. Run the CLI:
