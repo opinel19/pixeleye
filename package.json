@@ -1,5 +1,5 @@
 {
-  "name": "pixeleye",
+  "name": "@opinel19/pixeleye",
   "version": "0.1.0",
   "description": "CLI tool to analyze localized UI screenshots with Gemini or ChatGPT.",
   "type": "module",
