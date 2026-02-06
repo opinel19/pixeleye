@@ -1,19 +1,8 @@
-import fs from "node:fs/promises";
-
 import { ProviderError } from "./errors";
 import type { AnalyzeImagesFn } from "./types";
+import { buildOpenAIImagePart } from "../utils/paths";
 
 const OPENAI_ENDPOINT = "https://api.openai.com/v1/chat/completions";
-
-const buildImagePart = async (imagePath: string) => {
-  const buffer = await fs.readFile(imagePath);
-  return {
-    type: "image_url",
-    image_url: {
-      url: `data:image/png;base64,${buffer.toString("base64")}`,
-    },
-  };
-};
 
 export const analyzeImages: AnalyzeImagesFn = async ({
   apiKey,
@@ -21,7 +10,9 @@ export const analyzeImages: AnalyzeImagesFn = async ({
   imagePaths,
 }) => {
   try {
-    const imageParts = await Promise.all(imagePaths.map(buildImagePart));
+    const imageParts = await Promise.all(
+      imagePaths.map(buildOpenAIImagePart),
+    );
     const response = await fetch(OPENAI_ENDPOINT, {
       method: "POST",
       headers: {

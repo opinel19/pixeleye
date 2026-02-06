@@ -1,20 +1,9 @@
-import fs from "node:fs/promises";
-
 import { ProviderError } from "./errors";
 import type { AnalyzeImagesFn } from "./types";
+import { buildGeminiImagePart } from "../utils/paths";
 
 const GEMINI_ENDPOINT =
   "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent";
-
-const buildImagePart = async (imagePath: string) => {
-  const buffer = await fs.readFile(imagePath);
-  return {
-    inlineData: {
-      mimeType: "image/png",
-      data: buffer.toString("base64"),
-    },
-  };
-};
 
 export const analyzeImages: AnalyzeImagesFn = async ({
   apiKey,
@@ -22,7 +11,9 @@ export const analyzeImages: AnalyzeImagesFn = async ({
   imagePaths,
 }) => {
   try {
-    const imageParts = await Promise.all(imagePaths.map(buildImagePart));
+    const imageParts = await Promise.all(
+      imagePaths.map(buildGeminiImagePart),
+    );
     const response = await fetch(`${GEMINI_ENDPOINT}?key=${apiKey}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
