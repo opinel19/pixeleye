@@ -2,6 +2,8 @@ import fs from "node:fs";
 import path from "node:path";
 import readline from "node:readline";
 
+import { analyzeWithProvider, formatProviderError } from "./providers";
+
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout,
@@ -76,6 +78,13 @@ const validateImagePath = (input: string): string => {
   return resolvedPath;
 };
 
+const validatePrompt = (input: string): string => {
+  if (!input) {
+    throw new Error("Prompt boş olamaz.");
+  }
+  return input;
+};
+
 const promptUntilValid = async <T>(
   question: string,
   validator: (input: string) => T,
@@ -111,6 +120,11 @@ const run = async () => {
     validateImagePath,
   );
 
+  const prompt = await promptUntilValid(
+    "Analiz promptunu girin: ",
+    validatePrompt,
+  );
+
   console.log(`\nDesteklenen diller: ${formatLanguageList()}\n`);
 
   const languages = await promptUntilValid(
@@ -123,6 +137,19 @@ const run = async () => {
   console.log(`API Key: ${"*".repeat(Math.min(apiKey.length, 8))}`);
   console.log(`Görsel: ${imagePath}`);
   console.log(`Diller: ${languages.join(", ")}`);
+
+  try {
+    const response = await analyzeWithProvider(provider, {
+      apiKey,
+      prompt: `${prompt}\nYanıtı şu dillerde ver: ${languages.join(", ")}.`,
+      imagePaths: [imagePath],
+    });
+    console.log("\n--- Analiz ---");
+    console.log(response.analysis);
+  } catch (error) {
+    console.error(`\nHata: ${formatProviderError(error)}`);
+  }
+
   console.log("\nİşlem tamamlandı.");
 
   rl.close();
