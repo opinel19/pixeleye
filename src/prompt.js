@@ -70,6 +70,8 @@ by translation/localization issues.
 │    • Number/date format inconsistencies                                    │
 │    • Currency symbol placement errors                                      │
 │    • Unit of measurement display problems                                  │
+│    • Untranslated UI strings (e.g., English text in non-English screens)   │
+│    • Wrong locale on screen (e.g., _tr screenshot still mostly English)    │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 
@@ -87,6 +89,8 @@ by translation/localization issues.
 4. CHECK ALL ZONES: Top nav, content area, bottom nav, buttons, cards, lists
 5. VERIFY TECHNICAL DATA: Numbers, units, values must be fully visible
 6. ASSESS PROFESSIONAL STANDARDS: This is for industrial users, quality matters
+7. VALIDATE SCREEN LANGUAGE: If filename indicates locale (e.g., *_tr.png), UI text must match that locale
+8. FLAG MISSING TRANSLATION: Treat untranslated or fallback English strings as defects for target locales
 
 📸 SCREENSHOTS TO ANALYZE (${imageCount} total):
   • ${idList}
@@ -108,6 +112,7 @@ For EACH screenshot, provide ONE line in this EXACT format:
 ✓ Provide SPECIFIC reason, not generic statements
 ✓ Mention EXACT UI zone and problematic text/value (e.g., header, button, bottom nav)
 ✓ Keep reason concise but informative (max 18 words)
+✓ For locale mismatch, explicitly say which text appears untranslated/wrong-language
 
 ❌ BAD Examples:
   pump_dashboard_tr.png False - Issues found
@@ -118,6 +123,7 @@ For EACH screenshot, provide ONE line in this EXACT format:
   documents_page_de.png True - All text properly contained, no overflow detected
   pump_settings_nb.png False - Header "Pumpeinnstillinger" truncated with ellipsis
   monitoring_ro.png True - Clean layout, all elements aligned correctly
+  settings_tr.png False - Title "Settings" is English, expected Turkish localization
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 

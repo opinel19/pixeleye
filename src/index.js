@@ -111,6 +111,17 @@ const inferLanguageFromFilename = (filename) => {
   return parts[parts.length - 1].toUpperCase();
 };
 
+const collectLanguagesFromFilenames = (imagePaths) => {
+  const set = new Set();
+  imagePaths.forEach((imagePath) => {
+    const lang = inferLanguageFromFilename(path.basename(imagePath));
+    if (lang && lang !== "UNKNOWN") {
+      set.add(lang);
+    }
+  });
+  return set;
+};
+
 const renderDetailedReport = (rows) => {
   const total = rows.length;
   const healthy = rows.filter((row) => row.verdict).length;
@@ -231,7 +242,23 @@ const main = async () => {
   const languages = languagesInput
     .split(",")
     .map((lang) => lang.trim())
-    .filter(Boolean);
+    .filter(Boolean)
+    .map((lang) => lang.toUpperCase());
+
+  const languageSet = new Set(languages);
+  const imageLanguageSet = collectLanguagesFromFilenames(imagePaths);
+  const unmatchedImageLanguages = [...imageLanguageSet].filter(
+    (lang) => !languageSet.has(lang)
+  );
+  if (unmatchedImageLanguages.length > 0) {
+    console.log(
+      chalk.yellow(
+        `Warning: Some image filename locales are not in selected test languages: ${unmatchedImageLanguages.join(
+          ", "
+        )}`
+      )
+    );
+  }
 
   const idList = imagePaths.map((p) => path.basename(p)).join("\n  • ");
   const prompt = buildPrompt({
