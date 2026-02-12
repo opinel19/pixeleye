@@ -186,6 +186,13 @@ const renderDetailedReport = (rows) => {
   }
 };
 
+const renderRawModelResponse = (result) => {
+  console.log(chalk.gray("\n" + "═".repeat(90)));
+  console.log(chalk.cyan.bold("                        🤖 MODEL HAM YANITI"));
+  console.log(chalk.gray("═".repeat(90)));
+  console.log(result.trim() || chalk.yellow("(Boş yanıt alındı)"));
+};
+
 const main = async () => {
   console.log(chalk.cyan.bold("PixelEye - Visual QA CLI"));
 
@@ -286,6 +293,8 @@ const main = async () => {
         imageDataUrls
       });
     }
+
+    renderRawModelResponse(result);
 
     const parsed = parseAnalysisLines(result, imagePaths);
     renderDetailedReport(parsed);
