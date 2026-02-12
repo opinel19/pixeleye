@@ -1,43 +1,128 @@
 export const buildPrompt = ({ imageCount, idList, languages }) => {
   const languageLine = languages.length
-    ? `Languages under test: ${languages.join(", ")}`
-    : "Languages under test: not specified";
+    ? languages.join(", ")
+    : "Not specified";
 
-  return `MOBILE APP VISUAL QA ANALYSIS TASK
-Expert UI/UX Quality Review
+  return `╔═══════════════════════════════════════════════════════════════════════════════╗
+║                    MOBILE APP VISUAL QA ANALYSIS TASK                         ║
+║                         Expert UI/UX Quality Review                           ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
 
-CONTEXT:
-You are a senior mobile app QA engineer specializing in i18n/l10n testing.
-You have been provided ${imageCount} screenshots from the SAME mobile application.
+📋 CONTEXT:
+You are a senior mobile app QA engineer specializing in internationalization (i18n) and
+localization (l10n) testing. You have been provided ${imageCount} screenshots from the
+SAME mobile application (Wilo-Smart Connect - Industrial Pump Control) translated into
+multiple languages.
 
-APP CONTEXT:
+🎯 YOUR MISSION:
+Perform a comprehensive visual quality inspection of EVERY SINGLE screenshot to identify
+ANY visual defects that could negatively impact user experience, particularly those caused
+by translation/localization issues.
+
+📱 APP CONTEXT:
 - Platform: Android (Xiaomi Mi A1, Android 13)
 - App Type: Industrial IoT pump monitoring and control
 - Target Users: Professional engineers and technicians
 - Critical Requirement: High precision in technical data display
-- ${languageLine}
+- Languages under test: ${languageLine}
 
-MISSION:
-Inspect EVERY screenshot and identify ANY visual defects impacting usability,
-especially those caused by localization. Be extremely thorough.
+🔍 VISUAL DEFECTS TO DETECT:
 
-VISUAL DEFECTS TO DETECT (flag if user impact):
-1) Text overflow/truncation (ellipsis, cut text, broken lines)
-2) Text clipping (diacritics cut, descenders clipped)
-3) Layout breaking (overlaps, elements out of viewport)
-4) Alignment issues (misaligned labels/icons/headers)
-5) Font rendering problems (size/weight inconsistencies)
-6) Whitespace issues (crowded or excessive spacing)
-7) Localization-specific (RTL issues, number/date/unit issues)
+┌─ CRITICAL ISSUES (Must Flag) ─────────────────────────────────────────────┐
+│                                                                             │
+│ 1. TEXT OVERFLOW & TRUNCATION:                                            │
+│    • Text extending beyond button/container boundaries                     │
+│    • Labels cut off with ellipsis (...) or partial visibility             │
+│    • Multi-line text breaking awkwardly                                    │
+│    • Horizontal scrolling indicators on fixed-width elements               │
+│                                                                             │
+│ 2. TEXT CLIPPING:                                                          │
+│    • Top/bottom of characters cut off (descenders like g, y, p)           │
+│    • Accented characters (ü, ñ, ő, ș) partially hidden                    │
+│    • Diacritics clipped or overlapping with container edges                │
+│                                                                             │
+│ 3. LAYOUT BREAKING:                                                        │
+│    • UI elements overlapping incorrectly                                   │
+│    • Buttons/cards pushed out of viewport                                  │
+│    • Misaligned grids or uneven spacing                                    │
+│    • Broken responsive layout (elements stacked incorrectly)               │
+│                                                                             │
+│ 4. ALIGNMENT ISSUES:                                                       │
+│    • Text not center-aligned in buttons                                    │
+│    • Icons misaligned with text labels                                     │
+│    • Uneven margins/padding creating visual imbalance                      │
+│    • Headers not properly aligned                                          │
+│                                                                             │
+│ 5. FONT RENDERING PROBLEMS:                                                │
+│    • Inconsistent font sizes in same context                               │
+│    • Incorrect font weights (too bold/thin)                                │
+│    • Letter spacing too tight (text cramped)                               │
+│    • Letter spacing too loose (text scattered)                             │
+│    • Font fallback issues (wrong font family used)                         │
+│                                                                             │
+│ 6. WHITESPACE ISSUES:                                                      │
+│    • Insufficient padding causing crowded appearance                        │
+│    • Excessive whitespace creating disconnected UI                         │
+│    • Uneven spacing between related elements                               │
+│                                                                             │
+│ 7. LOCALIZATION-SPECIFIC:                                                  │
+│    • Text direction issues (RTL languages if present)                      │
+│    • Number/date format inconsistencies                                    │
+│    • Currency symbol placement errors                                      │
+│    • Unit of measurement display problems                                  │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
 
-SCREENSHOTS (${imageCount} total):
+✅ ACCEPTABLE CONDITIONS (NOT Issues):
+- Slight variations in text length across languages (expected in i18n)
+- Different font rendering on various languages (as long as readable)
+- Intentional design choices (e.g., minimal padding for compact design)
+- Minor pixel-level imperfections that don't impact usability
+
+⚠️ ANALYSIS GUIDELINES:
+
+1. BE EXTREMELY THOROUGH: Examine EVERY UI element in each screenshot
+2. FOCUS ON USER IMPACT: Only flag issues that harm usability/readability
+3. CONSIDER LANGUAGE CONTEXT: Longer German words vs shorter English is normal
+4. CHECK ALL ZONES: Top nav, content area, bottom nav, buttons, cards, lists
+5. VERIFY TECHNICAL DATA: Numbers, units, values must be fully visible
+6. ASSESS PROFESSIONAL STANDARDS: This is for industrial users, quality matters
+
+📸 SCREENSHOTS TO ANALYZE (${imageCount} total):
   • ${idList}
 
-OUTPUT FORMAT (STRICT):
-[EXACT_FILENAME] [True/False] - [Reason in English, max 15 words]
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-True = No visual defects detected
-False = Defect(s) found that negatively impact UX
+🎯 OUTPUT FORMAT (STRICTLY FOLLOW):
 
-BEGIN ANALYSIS NOW:`;
+For EACH screenshot, provide ONE line in this EXACT format:
+
+[EXACT_FILENAME] [True/False] - [Detailed reason in English]
+
+• True  = No visual defects detected, UI is clean and professional
+• False = Visual defect(s) found that negatively impact UX
+
+📝 RESPONSE QUALITY REQUIREMENTS:
+
+✓ Use EXACT filename from the list above (copy-paste to avoid typos)
+✓ Provide SPECIFIC reason, not generic statements
+✓ Mention EXACT UI zone and problematic text/value (e.g., header, button, bottom nav)
+✓ Keep reason concise but informative (max 18 words)
+
+❌ BAD Examples:
+  pump_dashboard_tr.png False - Issues found
+  documents_page_de.png True - Good
+
+✅ GOOD Examples:
+  pump_dashboard_tr.png False - Button text "Ayarlar" extends beyond button boundary
+  documents_page_de.png True - All text properly contained, no overflow detected
+  pump_settings_nb.png False - Header "Pumpeinnstillinger" truncated with ellipsis
+  monitoring_ro.png True - Clean layout, all elements aligned correctly
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🚀 BEGIN ANALYSIS NOW:
+
+Analyze all ${imageCount} screenshots systematically and provide your detailed assessment
+below, one line per screenshot:`;
 };
