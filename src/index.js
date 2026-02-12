@@ -13,7 +13,33 @@ const PROVIDERS = {
   ChatGPT: "openai"
 };
 
-const LINE_REGEX = /^(.+?)\s+(True|False)\s*-\s*(.+)$/i;
+const LINE_REGEX = /^(.+?)\s+(True|False)\s*[-:–]\s*(.+)$/i;
+const NO_ISSUE_HINTS = [
+  "no issue",
+  "no issues",
+  "no visual defect",
+  "clean layout",
+  "all text properly",
+  "sorun yok",
+  "bulgu yok"
+];
+
+const normalizeLeadingDecorators = (line) =>
+  line
+    .replace(/^[-*•\d.)\s`\[\]]+/, "")
+    .replace(/^\*\*(.+?)\*\*$/, "$1")
+    .trim();
+
+const inferVerdictFromReason = (reason) => {
+  const normalized = reason.toLowerCase();
+  return NO_ISSUE_HINTS.some((hint) => normalized.includes(hint));
+};
+
+const findFallbackLineForFilename = (filename, rawLines) => {
+  const escaped = filename.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const filenameRegex = new RegExp(escaped, "i");
+  return rawLines.find((line) => filenameRegex.test(line)) ?? null;
+};
 
 const parseAnalysisLines = (resultText, imagePaths) => {
   const expectedFiles = imagePaths.map((p) => path.basename(p));
@@ -23,7 +49,8 @@ const parseAnalysisLines = (resultText, imagePaths) => {
     .filter(Boolean);
 
   const parsedMap = new Map();
-  for (const line of rawLines) {
+  for (const rawLine of rawLines) {
+    const line = normalizeLeadingDecorators(rawLine);
     const match = line.match(LINE_REGEX);
     if (!match) {
       continue;
@@ -47,11 +74,30 @@ const parseAnalysisLines = (resultText, imagePaths) => {
       return found;
     }
 
+    const fallbackLine = findFallbackLineForFilename(filename, rawLines);
+    if (fallbackLine) {
+      const reason = fallbackLine
+        .replace(new RegExp(filename.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i"), "")
+        .replace(/^[\s:–-]+/, "")
+        .trim();
+
+      if (reason) {
+        const verdict = inferVerdictFromReason(reason);
+        return {
+          filename,
+          verdict,
+          reason,
+          rawLine: fallbackLine
+        };
+      }
+    }
+
     return {
       filename,
       verdict: false,
-      reason: "Model yanıtı format dışı olduğu için sorun konumu çıkartılamadı.",
-      rawLine: `${filename} False - Model yanıtı format dışı olduğu için sorun konumu çıkartılamadı.`
+      reason:
+        "Model yanıtı tam formatta değildi; bu görsel için net sorun açıklaması alınamadı.",
+      rawLine: `${filename} False - Model yanıtı tam formatta değildi; bu görsel için net sorun açıklaması alınamadı.`
     };
   });
 };
