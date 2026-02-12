@@ -106,8 +106,8 @@ For EACH screenshot, provide ONE line in this EXACT format:
 
 ✓ Use EXACT filename from the list above (copy-paste to avoid typos)
 ✓ Provide SPECIFIC reason, not generic statements
-✓ Mention WHICH element/area has the issue
-✓ Keep reason concise but informative (max 15 words)
+✓ Mention EXACT UI zone and problematic text/value (e.g., header, button, bottom nav)
+✓ Keep reason concise but informative (max 18 words)
 
 ❌ BAD Examples:
   pump_dashboard_tr.png False - Issues found

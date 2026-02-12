@@ -13,6 +13,122 @@ const PROVIDERS = {
   ChatGPT: "openai"
 };
 
+const LINE_REGEX = /^(.+?)\s+(True|False)\s*-\s*(.+)$/i;
+
+const parseAnalysisLines = (resultText, imagePaths) => {
+  const expectedFiles = imagePaths.map((p) => path.basename(p));
+  const rawLines = resultText
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  const parsedMap = new Map();
+  for (const line of rawLines) {
+    const match = line.match(LINE_REGEX);
+    if (!match) {
+      continue;
+    }
+
+    const [, filenameRaw, verdictRaw, reasonRaw] = match;
+    const filename = filenameRaw.trim();
+    const verdict = verdictRaw.toLowerCase() === "true";
+    const reason = reasonRaw.trim();
+    parsedMap.set(filename.toLowerCase(), {
+      filename,
+      verdict,
+      reason,
+      rawLine: line
+    });
+  }
+
+  return expectedFiles.map((filename) => {
+    const found = parsedMap.get(filename.toLowerCase());
+    if (found) {
+      return found;
+    }
+
+    return {
+      filename,
+      verdict: false,
+      reason: "Model yanıtı format dışı olduğu için sorun konumu çıkartılamadı.",
+      rawLine: `${filename} False - Model yanıtı format dışı olduğu için sorun konumu çıkartılamadı.`
+    };
+  });
+};
+
+const inferLanguageFromFilename = (filename) => {
+  const name = filename.replace(/\.[^.]+$/, "");
+  const parts = name.split(/[_-]/).filter(Boolean);
+  if (parts.length === 0) {
+    return "UNKNOWN";
+  }
+  return parts[parts.length - 1].toUpperCase();
+};
+
+const renderDetailedReport = (rows) => {
+  const total = rows.length;
+  const healthy = rows.filter((row) => row.verdict).length;
+  const problematic = total - healthy;
+  const healthyPct = total ? ((healthy / total) * 100).toFixed(1) : "0.0";
+  const problematicPct = total ? ((problematic / total) * 100).toFixed(1) : "0.0";
+
+  console.log(chalk.cyan("\n📊 Gemini/OpenAI Analiz Sonuçları:\n"));
+  rows.forEach((row) => {
+    const verdictWord = row.verdict ? "True" : "False";
+    const line = `${row.filename} ${verdictWord} - ${row.reason}`;
+    console.log(row.verdict ? chalk.green(line) : chalk.yellow(line));
+  });
+
+  console.log(chalk.gray("\n" + "═".repeat(90)));
+  console.log(chalk.cyan.bold("                     📋 DETAYLI ANALİZ SONUÇLARI"));
+  console.log(chalk.gray("═".repeat(90)));
+
+  rows.forEach((row) => {
+    if (row.verdict) {
+      console.log(chalk.green(`✅ ${row.filename.padEnd(36)} │ SORUN YOK`));
+      console.log(chalk.green(`   └─ ${row.reason}`));
+    } else {
+      console.log(chalk.yellow(`⚠️  ${row.filename.padEnd(36)} │ MANUEL İNCELE`));
+      console.log(chalk.yellow(`   └─ SORUN: ${row.reason}`));
+    }
+    console.log();
+  });
+
+  console.log(chalk.gray("═".repeat(90)));
+  console.log(chalk.cyan.bold("                           📈 GENEL ÖZET"));
+  console.log(chalk.gray("═".repeat(90)));
+  console.log(`📊 Toplam Analiz Edilen: ${total} görsel`);
+  console.log(chalk.green(`✅ Sorunsuz: ${healthy} görsel (${healthyPct}%)`));
+  console.log(chalk.yellow(`⚠️  Sorunlu: ${problematic} görsel (${problematicPct}%)`));
+
+  const grouped = rows
+    .filter((row) => !row.verdict)
+    .reduce((acc, row) => {
+      const lang = inferLanguageFromFilename(row.filename);
+      if (!acc.has(lang)) {
+        acc.set(lang, []);
+      }
+      acc.get(lang).push(row);
+      return acc;
+    }, new Map());
+
+  if (grouped.size > 0) {
+    console.log(chalk.gray("\n" + "═".repeat(90)));
+    console.log(chalk.cyan.bold("               ⚠️  MANUEL İNCELEME GEREKTİREN GÖRSELLER"));
+    console.log(chalk.gray("═".repeat(90)));
+
+    for (const [lang, entries] of grouped.entries()) {
+      console.log(chalk.yellow(`🌍 ${lang} (${entries.length} sorun):`));
+      entries.forEach((entry) => {
+        const name = entry.filename.replace(/\.[^.]+$/, "").replace(/[_-]/g, " ");
+        console.log(`  • ${name}`);
+        console.log(`    └─ ${entry.reason}`);
+      });
+      console.log();
+    }
+  }
+};
+
 const main = async () => {
   console.log(chalk.cyan.bold("PixelEye - Visual QA CLI"));
 
@@ -98,8 +214,8 @@ const main = async () => {
       });
     }
 
-    console.log(chalk.green("\nAnalysis Result:\n"));
-    console.log(result.trim());
+    const parsed = parseAnalysisLines(result, imagePaths);
+    renderDetailedReport(parsed);
   } catch (error) {
     console.error(chalk.red("Analysis failed:"), error.message);
     process.exit(1);
