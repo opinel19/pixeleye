@@ -12,18 +12,6 @@ Context-Aware Analysis: Understands the target language to ensure the UI adapts 
 
 ## Quick Start
 
-### Homebrew (macOS)
-
-1. Install via Homebrew:
-   ```bash
-   brew install --formula https://raw.githubusercontent.com/opinel19/pixeleye/main/Formula/pixeleye.rb
-   ```
-
-2. Run the CLI:
-   ```bash
-   pixeleye
-   ```
-
 ### npm (any platform)
 
 1. Install globally from GitHub:
